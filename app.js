@@ -1,7 +1,12 @@
 var express 	= require("express")
 	app 		= express(),
 	bodyParser 	= require("body-parser"),
-	mongoose 	= require("mongoose");
+	mongoose 	= require("mongoose"),
+	Campground 	= require("./models/campground"),
+	Comment 	= require("./models/comment"),
+	//User 		= require("./models/user");
+	seedDB      = require("./seed")
+
 
 mongoose.connect("mongodb://localhost:27017/yelp_camp");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -18,14 +23,7 @@ app.set("view engine", "ejs");
 {name: "spain", image: "https://images.unsplash.com/photo-1528892677828-8862216f3665?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60"}]
  */
  
-//SCHEMA SETUP
-var campgroundSchema = new mongoose.Schema({
-	name: String,
-	image: String,
-	description: String,
-});
-
-var Campground = mongoose.model("Campground", campgroundSchema);
+seedDB();
 
 app.get("/", (request, response) => {
 	response.render("landing");
@@ -40,7 +38,7 @@ app.get("/campground", (request, response) => {
 			console.log(err);
 		}
 		else{
-			response.render("index", {campgrounds: allCampgrounds});
+			response.render("campgrounds/index", {campgrounds: allCampgrounds});
 		}
 	})
 })
@@ -63,22 +61,57 @@ app.post("/campground", (request, response) => {
 
 //New - show form to create new campground
 app.get("/campground/new", (request, response) => {
-	response.render("new.ejs");
+	response.render("campgrounds/new");
 })
 
 //Show - show info about a campground
 app.get("/campgrounds/:id", function(request, response){
 	var id = request.params.id;
-	Campground.findById(id, function(err, campground){
+	Campground.findById(id).populate("comments").exec(function(err, foundCampground){
 		if(err){
 			console.log();
 		}
 		else{
-			response.render("show", {campground: campground});
+			response.render("campgrounds/show", {campground: foundCampground});
 		}
+	});
+	
+})
 
+
+//comment routes
+app.get("/campgrounds/:id/comments/new", (request, response) => {
+	Campground.findById(request.params.id,(error, foundCampground) => {
+		if(error){
+			console.log(error);
+		}
+		else{
+			response.render("comments/new",{campground: foundCampground});
+		}
 	})
 	
 })
+
+app.post("/campground/:id/comments",(request, response) => {
+	Campground.findById(request.params.id,(error, foundCampground) => {
+	if(error){
+		console.log(error);
+	}
+	else{
+		Comment.create(request.body.comment, (error, comment) => {
+			if(error){
+				console.log();
+			}else{
+				foundCampground.comments.push(comment);
+				foundCampground.save();
+				response.redirect("/campgrounds/"+foundCampground._id)
+			}
+		})
+	}
+})
+
+})
+
+
 
 app.listen(3000, function(){console.log("YelpCamp has started!")});
