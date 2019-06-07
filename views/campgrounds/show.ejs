@@ -20,15 +20,15 @@
             </div>
             <div class="card-footer" style="margin: 20px auto">
                 <div class="text-right">
-                    <a class="btn btn-success" href="/campgrounds/<%= campground._id%>/comments/new">Add a New
+                    <a class="btn btn-success" href="/campground/<%= campground._id%>/comments/new">Add a New
                         Comment</a>
                 </div>
                 <hr>
                 <% campground.comments.forEach(function(comment){%>
                 <div class="row">
                     <div class="col-md-12">
-                        <strong><%= comment.author%></strong>
-                        <span class="float-right">10 days ago</span>
+                        <strong><%= comment.author.username%></strong>
+                        <span class="float-right"><%= new Date()%></span>
                         <p><%= comment.text%></p>
                     </div>
                 </div>

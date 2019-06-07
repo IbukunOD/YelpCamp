@@ -17,14 +17,22 @@
 			<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
 			  <ul class="navbar-nav">
 				<li class="nav-item">
-				  <a class="nav-link" href="#">Login <span class="sr-only">(current)</span></a>
+					<% if(typeof user == "undefined"){ %>
+				  <a class="nav-link" href="/login">Log In <span class="sr-only">(current)</span></a>
 				</li>
 				<li class="nav-item">
-				  <a class="nav-link" href="#">Sign Up</a>
+				  <a class="nav-link" href="/register">Sign Up</a>
 				</li>
-				<li class="nav-item">
-				  <a class="nav-link" href="#">LogOut</a>
+
+				<% } else { %>
+					<li class="nav-item nav-link text-info">
+							 Signed In As <strong><%=user.username %></strong>
+						</li>
+					<li class="nav-item">
+				  <a class="nav-link" href="/logout">Log Out</a>
 				</li>
+				<%}%>
+
 			  </ul>
 			</div>
 		  </nav>
