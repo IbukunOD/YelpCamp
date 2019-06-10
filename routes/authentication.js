@@ -45,12 +45,5 @@ var express = require("express"),
         response.redirect("/"); 
         })
     
-    function isLoggedIn(request, response, next){
-    if(request.isAuthenticated()){
-        return next();
-    }
-    return response.redirect("/login")
-    }
-
 
 module.exports = router;

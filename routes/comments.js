@@ -18,14 +18,17 @@ router.get("/new", isLoggedIn, (request, response) => {
 
 //Commment create
 router.post("/",isLoggedIn, (request, response) => {
+	var commentText = request.body.comment.text;
+	var commentTime = new Date().toString();
+
 	Campground.findById(request.params.id,(error, foundCampground) => {
 	if(error){
 		console.log(error);
 	}
 	else{
-		Comment.create(request.body.comment, (error, comment) => {
+		Comment.create({text: commentText, time: commentTime}, (error, comment) => {
 			if(error){
-				console.log();
+				console.log(error);
 			}else{
                 //add username and id to commit 
                 //save comment

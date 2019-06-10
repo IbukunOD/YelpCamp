@@ -9,10 +9,7 @@ var express 	= require("express")
 	localStrategy	= require("passport-local"),
 	seedDB      = require("./seed");
 
-var commentRoutes = require("./routes/comments"),
-	campgroundRoutes = require("./routes/campgrounds"),
-	authRoutes = require("./routes/authentication"),
-	indexRoutes = require("./routes/index");
+
 
 
 mongoose.connect("mongodb://localhost:27017/yelp_camp");
@@ -47,6 +44,11 @@ app.use(function(request, response, next){
 	next(); 
 })
 
+var commentRoutes = require("./routes/comments"),
+	campgroundRoutes = require("./routes/campgrounds"),
+	authRoutes = require("./routes/authentication"),
+	indexRoutes = require("./routes/index");
+	
 app.use(indexRoutes);
 app.use("/campground",campgroundRoutes);
 app.use("/campground/:id/comments",commentRoutes);

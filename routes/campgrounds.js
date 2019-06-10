@@ -1,7 +1,8 @@
 var express = require("express"),
     router = express.Router(),
 	Campground 	= require("../models/campground");
-	
+    User 	= require("../models/user");
+
 //Index route
 router.get("/",(request, response) => {
 	//get all campgrounds from the db
@@ -16,20 +17,30 @@ router.get("/",(request, response) => {
 	})
 })
 
-//Create - show form to create new campground
+//Create - Add new campground to the database
 router.post("/", isLoggedIn, (request, response) => {
 	var name = request.body.name;
 	var image = request.body.image;
 	var description = request.body.description;
+    var currentUser = request.user;
 
-	Campground.create({name: name, image: image, description: description}, function(err, campground){
-		if(err){
-			console.log(err);
-		}
-		else{
-			response.redirect("/campground");
-		}
-	});
+
+    User.findById({_id: currentUser._id}, (error, user)=>{
+        if(error){
+            console.log();
+        }
+        else{
+            Campground.create({name: name, image: image, description: description, createdBy: user}, function(err, campground){
+                if(err){
+                    console.log(err);
+                }
+                else{
+                    response.redirect("/campground");
+                }
+            });
+        }
+    })
+	
 })
 
 //New - show form to create new campground
@@ -42,7 +53,7 @@ router.get("/new", isLoggedIn, (request, response) => {
 router.get("/:id", function(request, response){
 	authUser = request.user;
 	var id = request.params.id;
-	Campground.findById(id).populate("comments").exec(function(err, foundCampground){
+	Campground.findById(id).populate("comments").populate("createdBy").exec(function(err, foundCampground){
 		if(err){
 			console.log();
 		}
