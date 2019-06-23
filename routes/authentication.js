@@ -29,16 +29,18 @@ var express = require("express"),
     
     //Show login form
     router.get("/login", (request, response) => {
-        response.render("register/login");
+        response.render("register/login", {referer:request.headers.referer});
     });
-    
+   
     //post Login form
-    router.post("/login", passport.authenticate("local",{
-        successRedirect: "/campground",
-        failureRedirect: "/login"
-    }),(request, response)=>{	
+    router.post("/login", passport.authenticate("local",{failureRedirect: "/login"}),(request, response)=>{	
+        if (request.body.referer && (request.body.referer !== undefined)) {
+            response.redirect(request.body.referer);
+        } else {    
+            response.redirect("/");
+        }
     });
-    
+
     //LOGOUT ROUTES
     router.get("/logout", (request, response) =>{
         request.logout();

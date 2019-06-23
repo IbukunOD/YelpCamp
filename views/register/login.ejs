@@ -3,6 +3,7 @@
 <form action="/login" method="POST">
     <input type="text" placeholder="username" name="username">
     <input type="password" placeholder="password" name="password">
+    <input type="hidden" name="referer" value="<%= referer %>" >
     <button>Log In</button>
 </form>
 <%include ../partials/footer %>
