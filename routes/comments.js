@@ -1,10 +1,11 @@
 var express = require("express"),
 	router = express.Router({ mergeParams: true }),
 	Campground = require("../models/campground"),
+	middleware = require("../middleware"),
 	Comment = require("../models/comment");
 
 //comment New
-router.get("/new", isLoggedIn, (request, response) => {
+router.get("/new", middleware.isLoggedIn, (request, response) => {
 	Campground.findById(request.params.id, (error, foundCampground) => {
 		if (error) {
 			console.log(error);
@@ -17,17 +18,19 @@ router.get("/new", isLoggedIn, (request, response) => {
 })
 
 //Commment create
-router.post("/", isLoggedIn, (request, response) => {
+router.post("/", middleware.isLoggedIn, (request, response) => {
 	var commentText = request.body.comment.text;
 	var commentTime = new Date().toString();
 
 	Campground.findById(request.params.id, (error, foundCampground) => {
 		if (error) {
+			request.flash("error", "something went wrong");
 			console.log(error);
 		}
 		else {
 			Comment.create({ text: commentText, time: commentTime }, (error, comment) => {
 				if (error) {
+					request.flash("error", "something went wrong");
 					console.log(error);
 				} else {
 					//add username and id to commit 
@@ -37,6 +40,7 @@ router.post("/", isLoggedIn, (request, response) => {
 					comment.save();
 					foundCampground.comments.push(comment);
 					foundCampground.save();
+					request.flash("success", "Successfully added comment");
 					response.redirect("/campground/" + foundCampground._id)
 				}
 			})
@@ -69,6 +73,7 @@ router.put("/:commentId", (request, response)=>{
 	var commentTime = new Date().toString();
 	Comment.findByIdAndUpdate(request.params.commentId,{text: request.body.text, time: commentTime}, (error, foundComment)=>{
 		if(error){
+			request.flash("error", "something went wrong while updating this comment");
 			response.redirect("/campground");
 		}
 		else{
@@ -77,14 +82,16 @@ router.put("/:commentId", (request, response)=>{
 	})	
 })
 
-router.delete("/:commentId", checkCommentOwnership, (request, response)=>{
+router.delete("/:commentId", middleware.checkCommentOwnership, (request, response)=>{
 	Comment.findByIdAndDelete(request.params.commentId, (error, deletedComment)=>{
 		if(error){
+			request.flash("error", "something went wrong while trying to delete this comment");
 			response.redirect("/campground");
 		}
 		else{
 			Campground.findById(request.params.id,(err, foundCampground) =>{
 				if(error){
+					request.flash("error", "something went wrong while trying to delete this comment");
 					console.log(error)
 				}else{
 					var index = foundCampground.comments.indexOf(deletedComment._id);
@@ -92,6 +99,7 @@ router.delete("/:commentId", checkCommentOwnership, (request, response)=>{
 						foundCampground.comments.splice(index, 1);
 						foundCampground.save();
 						console.log(foundCampground.comments);
+						request.flash("success", "successfully deleted the comment");
 						response.redirect("/campground/"+request.params.id);	
 					}
 				}
@@ -100,36 +108,5 @@ router.delete("/:commentId", checkCommentOwnership, (request, response)=>{
 		}
 	})	
 })
-
-//Middleware
-function isLoggedIn(request, response, next) {
-	if (request.isAuthenticated()) {
-		return next();
-	}
-	return response.redirect("/login")
-}
-
-function checkCommentOwnership(request, response, next){
-	if(request.isAuthenticated()){ 
-		//does the user own the campground
-		Comment.findById(request.params.commentId, (err, foundComment) => {
-			if(err){
-				console.log(err);
-				response.redirect("back");
-			}
-			else{
-				if(foundComment.author.id.equals(request.user._id)){
-				next();
-			} 
-			else{
-				response.redirect("back");
-			}
-		}
-		});
-	}else{
-		response.redirect("back");
-	}
-}
-
 
 module.exports = router;
